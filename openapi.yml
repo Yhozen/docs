@@ -1,0 +1,738 @@
+openapi: 3.1.0
+info:
+  title: Payscript API
+  description: The Payscript API description
+  version: '1.0'
+  contact: {}
+servers: []
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+  /health:
+    get:
+      operationId: HealthController_check
+      summary: Get API health
+      parameters: []
+      responses:
+        '200':
+          description: The Health Check is successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - ok
+                  info:
+                    type:
+                      - object
+                      - 'null'
+                    examples:
+                      - database:
+                          status: up
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+                  error:
+                    type:
+                      - object
+                      - 'null'
+                    examples:
+                      - {}
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+                  details:
+                    type: object
+                    examples:
+                      - database:
+                          status: up
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+        '503':
+          description: The Health Check is not successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - error
+                  info:
+                    type:
+                      - object
+                      - 'null'
+                    examples:
+                      - database:
+                          status: up
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+                  error:
+                    type:
+                      - object
+                      - 'null'
+                    examples:
+                      - redis:
+                          status: down
+                          message: Could not connect
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+                  details:
+                    type: object
+                    examples:
+                      - database:
+                          status: up
+                        redis:
+                          status: down
+                          message: Could not connect
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                      additionalProperties:
+                        type: string
+  /v1/payment-requests:
+    get:
+      operationId: PaymentsController_getInvoices
+      summary: Get payment requests
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment requests with pagination data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestsWithPagination'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+      security:
+        - bearer: []
+  '/v1/payment-requests/{id}':
+    get:
+      operationId: PaymentsController_getInvoice
+      summary: Get specific payment request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestDTO'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+      security:
+        - bearer: []
+  /v1/payment-requests/create:
+    post:
+      operationId: PaymentsController_createPaymentRequest
+      summary: Create new payment request
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentDTO'
+      responses:
+        '201':
+          description: Created payment request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestWithLinkDTO'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+      security:
+        - bearer: []
+  /v1/invoices:
+    get:
+      operationId: InvoicesController_getInvoices
+      summary: Get invoices
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoices with pagination data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoicesWithPaginationDTO'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+      security:
+        - bearer: []
+  '/v1/invoices/{id}':
+    get:
+      operationId: InvoicesController_getInvoice
+      summary: Get a specific invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The found invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDTO'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+        '404':
+          description: Invoice was not found
+      security:
+        - bearer: []
+  /v1/invoices/search:
+    get:
+      operationId: InvoicesController_searchInvoice
+      summary: Search a invoice using folio and tipoDte
+      parameters:
+        - name: tipoDte
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: folio
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The found invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDTO'
+        '403':
+          description: Unauthorized call (use Bearer Token)
+        '404':
+          description: Invoice was not found
+      security:
+        - bearer: []
+  /v1/customers:
+    get:
+      operationId: CustomersController_getInvoices
+      summary: Get customers
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+        '403':
+          description: Unauthorized call (use Bearer Token)
+      security:
+        - bearer: []
+  '/v1/customers/{id}':
+    get:
+      operationId: CustomersController_getInvoice
+      summary: Get a specific customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '403':
+          description: Unauthorized call (use Bearer Token)
+        '404':
+          description: Customer was not found
+      security:
+        - bearer: []
+components:
+  schemas:
+    PaymentRequestsWithPagination:
+      type: object
+      properties:
+        paymentRequests:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                description: Invoice ID
+                type: string
+                examples:
+                  - 6557d8c1e20b2e7594b6dad0
+              referenceId:
+                description: Emisor ID
+                type: string
+                examples:
+                  - THE_EMISOR_ID
+              entityId:
+                description: Receptor ID
+                type: string
+                examples:
+                  - THE_RECEPTOR_ID
+              createdAt:
+                description: Date where our system created this invoice (NOT the issued date)
+                type: string
+                format: date-time
+              amount:
+                description: Total amount to be paid
+                type: number
+                examples:
+                  - 2000
+                minimum: 0
+              currency:
+                description: Invoice currency
+                type: string
+                examples:
+                  - CLP
+              status:
+                type: string
+                enum:
+                  - pending
+                  - paid
+                  - awaitingTransferConfirmation
+                  - rejected
+              data:
+                description: Using paymentMessage
+                example:
+                  paymentMessage: Something to display when paying
+                title: Extra data
+              receiptUrl:
+                description: Payment receipt URL (if exists)
+                type:
+                  - string
+                  - 'null'
+                examples:
+                  - 'https://assets.payscript.app/SOME_ID'
+            required:
+              - id
+              - referenceId
+              - entityId
+              - createdAt
+              - amount
+              - currency
+              - status
+              - receiptUrl
+            title: PaymentRequest
+            description: A invoice basic description
+        pagination:
+          type: object
+          properties:
+            cursor:
+              description: pagination cursor
+              type:
+                - string
+                - 'null'
+              examples:
+                - 6557d8c1e20b2e7594b6dad0
+          required:
+            - cursor
+      required:
+        - paymentRequests
+        - pagination
+    PaymentRequestDTO:
+      description: A invoice basic description
+      type: object
+      properties:
+        id:
+          description: Invoice ID
+          type: string
+          examples:
+            - 6557d8c1e20b2e7594b6dad0
+        referenceId:
+          description: Emisor ID
+          type: string
+          examples:
+            - THE_EMISOR_ID
+        entityId:
+          description: Receptor ID
+          type: string
+          examples:
+            - THE_RECEPTOR_ID
+        createdAt:
+          description: Date where our system created this invoice (NOT the issued date)
+          type: string
+          format: date-time
+        amount:
+          description: Total amount to be paid
+          type: number
+          examples:
+            - 2000
+          minimum: 0
+        currency:
+          description: Invoice currency
+          type: string
+          examples:
+            - CLP
+        status:
+          type: string
+          enum:
+            - pending
+            - paid
+            - awaitingTransferConfirmation
+            - rejected
+        data:
+          description: Using paymentMessage
+          example:
+            paymentMessage: Something to display when paying
+          title: Extra data
+        receiptUrl:
+          description: Payment receipt URL (if exists)
+          type:
+            - string
+            - 'null'
+          examples:
+            - 'https://assets.payscript.app/SOME_ID'
+      required:
+        - id
+        - referenceId
+        - entityId
+        - createdAt
+        - amount
+        - currency
+        - status
+        - receiptUrl
+      title: PaymentRequest
+    CreatePaymentDTO:
+      type: object
+      properties:
+        referenceId:
+          description: 'Any ID from your system i.e: Order ID, PO, ETC'
+          type: string
+          examples:
+            - '1235'
+          title: Unique ID reference
+        amount:
+          type: number
+          minimum: 0
+        data:
+          description: Using paymentMessage
+          example:
+            paymentMessage: Something to display when paying
+          title: Extra data
+      required:
+        - referenceId
+        - amount
+    PaymentRequestWithLinkDTO:
+      type: object
+      properties:
+        paymentRequest:
+          description: A invoice basic description
+          type: object
+          properties:
+            id:
+              description: Invoice ID
+              type: string
+              examples:
+                - 6557d8c1e20b2e7594b6dad0
+            referenceId:
+              description: Emisor ID
+              type: string
+              examples:
+                - THE_EMISOR_ID
+            entityId:
+              description: Receptor ID
+              type: string
+              examples:
+                - THE_RECEPTOR_ID
+            createdAt:
+              description: Date where our system created this invoice (NOT the issued date)
+              type: string
+              format: date-time
+            amount:
+              description: Total amount to be paid
+              type: number
+              examples:
+                - 2000
+              minimum: 0
+            currency:
+              description: Invoice currency
+              type: string
+              examples:
+                - CLP
+            status:
+              type: string
+              enum:
+                - pending
+                - paid
+                - awaitingTransferConfirmation
+                - rejected
+            data:
+              description: Using paymentMessage
+              example:
+                paymentMessage: Something to display when paying
+              title: Extra data
+            receiptUrl:
+              description: Payment receipt URL (if exists)
+              type:
+                - string
+                - 'null'
+              examples:
+                - 'https://assets.payscript.app/SOME_ID'
+          required:
+            - id
+            - referenceId
+            - entityId
+            - createdAt
+            - amount
+            - currency
+            - status
+            - receiptUrl
+          title: PaymentRequest
+        link:
+          type: string
+          format: uri
+      required:
+        - paymentRequest
+        - link
+    InvoicesWithPaginationDTO:
+      type: object
+      properties:
+        invoices:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                description: Invoice ID
+                type: string
+                examples:
+                  - 6557d8c1e20b2e7594b6dad0
+              emisorId:
+                description: Emisor ID
+                type: string
+                examples:
+                  - THE_EMISOR_ID
+              receptorId:
+                description: Receptor ID
+                type: string
+                examples:
+                  - THE_RECEPTOR_ID
+              createdAt:
+                description: Date where our system created this invoice (NOT the issued date)
+                type: string
+                format: date-time
+              tipoDte:
+                description: SII document number
+                type: string
+                examples:
+                  - '33'
+              folio:
+                description: 'SII document ID (the combination of receptor, tipoDte and folio must be unique)'
+                type: string
+                examples:
+                  - '33'
+              fechaEmision:
+                description: Issued date
+                type: string
+                format: date-time
+              fechaVencimiento:
+                description: Due date
+                type: string
+                format: date-time
+              monto:
+                description: Total amount to be paid
+                type: number
+                examples:
+                  - 2000
+                minimum: 0
+              currency:
+                description: Invoice currency
+                type: string
+                examples:
+                  - CLP
+              status:
+                type: string
+                enum:
+                  - pending
+                  - paid
+                  - awaitingTransferConfirmation
+                  - rejected
+              receiptUrl:
+                description: Payment receipt URL (if exists)
+                type:
+                  - string
+                  - 'null'
+                examples:
+                  - 'https://assets.payscript.app/SOME_ID'
+              referenceId:
+                description: Document reference (if exists)
+                type:
+                  - string
+                  - 'null'
+                examples:
+                  - 6557d8c1e20b2e7594b6dad0
+            required:
+              - id
+              - emisorId
+              - receptorId
+              - createdAt
+              - tipoDte
+              - folio
+              - fechaEmision
+              - fechaVencimiento
+              - monto
+              - currency
+              - status
+              - receiptUrl
+              - referenceId
+            title: Invoice
+            description: A invoice basic description
+        pagination:
+          type: object
+          properties:
+            cursor:
+              description: pagination cursor
+              type:
+                - string
+                - 'null'
+              examples:
+                - 6557d8c1e20b2e7594b6dad0
+          required:
+            - cursor
+      required:
+        - invoices
+        - pagination
+    InvoiceDTO:
+      description: A invoice basic description
+      type: object
+      properties:
+        id:
+          description: Invoice ID
+          type: string
+          examples:
+            - 6557d8c1e20b2e7594b6dad0
+        emisorId:
+          description: Emisor ID
+          type: string
+          examples:
+            - THE_EMISOR_ID
+        receptorId:
+          description: Receptor ID
+          type: string
+          examples:
+            - THE_RECEPTOR_ID
+        createdAt:
+          description: Date where our system created this invoice (NOT the issued date)
+          type: string
+          format: date-time
+        tipoDte:
+          description: SII document number
+          type: string
+          examples:
+            - '33'
+        folio:
+          description: 'SII document ID (the combination of receptor, tipoDte and folio must be unique)'
+          type: string
+          examples:
+            - '33'
+        fechaEmision:
+          description: Issued date
+          type: string
+          format: date-time
+        fechaVencimiento:
+          description: Due date
+          type: string
+          format: date-time
+        monto:
+          description: Total amount to be paid
+          type: number
+          examples:
+            - 2000
+          minimum: 0
+        currency:
+          description: Invoice currency
+          type: string
+          examples:
+            - CLP
+        status:
+          type: string
+          enum:
+            - pending
+            - paid
+            - awaitingTransferConfirmation
+            - rejected
+        receiptUrl:
+          description: Payment receipt URL (if exists)
+          type:
+            - string
+            - 'null'
+          examples:
+            - 'https://assets.payscript.app/SOME_ID'
+        referenceId:
+          description: Document reference (if exists)
+          type:
+            - string
+            - 'null'
+          examples:
+            - 6557d8c1e20b2e7594b6dad0
+      required:
+        - id
+        - emisorId
+        - receptorId
+        - createdAt
+        - tipoDte
+        - folio
+        - fechaEmision
+        - fechaVencimiento
+        - monto
+        - currency
+        - status
+        - receiptUrl
+        - referenceId
+      title: Invoice
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+tags: []
